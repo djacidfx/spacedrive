@@ -194,6 +194,7 @@ export const FileThumb = forwardRef<HTMLImageElement, ThumbProps>((props, ref) =
 
 	return (
 		<div
+			key={thumbType.variant}
 			style={{
 				...(props.size
 					? { maxWidth: props.size, width: props.size, height: props.size }
@@ -265,7 +266,6 @@ const Thumbnail = forwardRef<HTMLImageElement, ThumbnailProps>(
 							className,
 							blackBarsStyle && size.width === 0 && 'invisible'
 						),
-						cover,
 						style: { ...style, ...(blackBars ? blackBarsStyle : undefined) },
 						size,
 						ref

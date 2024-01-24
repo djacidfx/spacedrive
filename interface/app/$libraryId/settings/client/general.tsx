@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import { Controller, FormProvider } from 'react-hook-form';
 import {
-	getDebugState,
 	useBridgeMutation,
 	useBridgeQuery,
 	useConnectedPeers,
@@ -10,7 +9,7 @@ import {
 } from '@sd/client';
 import { Button, Card, Input, Select, SelectOption, Slider, Switch, tw, z } from '@sd/ui';
 import { Icon } from '~/components';
-import { useDebouncedFormWatch } from '~/hooks';
+import { useDebouncedFormWatch, useLocale } from '~/hooks';
 import { usePlatform } from '~/util/Platform';
 
 import { Heading } from '../Layout';
@@ -28,6 +27,7 @@ export const Component = () => {
 	const debugState = useDebugState();
 	const editNode = useBridgeMutation('nodes.edit');
 	const connectedPeers = useConnectedPeers();
+	const image_labeler_versions = useBridgeQuery(['models.image_detection.list']);
 	const updateThumbnailerPreferences = useBridgeMutation('nodes.updateThumbnailerPreferences');
 
 	const form = useZodForm({
@@ -37,6 +37,7 @@ export const Component = () => {
 				p2p_enabled: z.boolean().optional(),
 				p2p_port: u16,
 				customOrDefault: z.enum(['Custom', 'Default']),
+				image_labeler_version: z.string().optional(),
 				background_processing_percentage: z.coerce
 					.number({
 						invalid_type_error: 'Must use numbers from 0 to 100'
@@ -49,9 +50,10 @@ export const Component = () => {
 		reValidateMode: 'onChange',
 		defaultValues: {
 			name: node.data?.name,
-			p2p_enabled: node.data?.p2p_enabled,
 			p2p_port: node.data?.p2p_port || 0,
+			p2p_enabled: node.data?.p2p_enabled,
 			customOrDefault: node.data?.p2p_port ? 'Custom' : 'Default',
+			image_labeler_version: node.data?.image_labeler_version ?? undefined,
 			background_processing_percentage:
 				node.data?.preferences.thumbnailer.background_processing_percentage || 50
 		}
@@ -65,8 +67,9 @@ export const Component = () => {
 		if (await form.trigger()) {
 			await editNode.mutateAsync({
 				name: value.name || null,
-				p2p_enabled: value.p2p_enabled === undefined ? null : value.p2p_enabled,
-				p2p_port: value.customOrDefault === 'Default' ? 0 : Number(value.p2p_port)
+				p2p_port: value.customOrDefault === 'Default' ? 0 : Number(value.p2p_port),
+				p2p_enabled: value.p2p_enabled ?? null,
+				image_labeler_version: value.image_labeler_version ?? null
 			});
 
 			if (value.background_processing_percentage != undefined) {
@@ -85,22 +88,28 @@ export const Component = () => {
 		}
 	});
 
+	const { t } = useLocale();
+
 	return (
 		<FormProvider {...form}>
 			<Heading
-				title="General Settings"
-				description="General settings related to this client."
+				title={t('general_settings')}
+				description={t('general_settings_description')}
 			/>
 			<Card className="px-5">
 				<div className="my-2 flex w-full flex-col">
 					<div className="flex flex-row items-center justify-between">
-						<span className="font-semibold">Local Node</span>
+						<span className="font-semibold">{t('local_node')}</span>
 						<div className="flex flex-row space-x-1">
-							<NodePill>{connectedPeers.size} Peers</NodePill>
+							<NodePill>
+								{connectedPeers.size} {t('peers')}
+							</NodePill>
 							{node.data?.p2p_enabled === true ? (
-								<NodePill className="!bg-accent text-white">Running</NodePill>
+								<NodePill className="!bg-accent text-white">
+									{t('running')}
+								</NodePill>
 							) : (
-								<NodePill className="text-white">Disabled</NodePill>
+								<NodePill className="text-white">{t('disabled')}</NodePill>
 							)}
 						</div>
 					</div>
@@ -109,7 +118,7 @@ export const Component = () => {
 					<div className="flex w-full items-center gap-5">
 						<Icon name="Laptop" className="mt-2 h-14 w-14" />
 						<div className="flex flex-col">
-							<NodeSettingLabel>Node Name</NodeSettingLabel>
+							<NodeSettingLabel>{t('node_name')}</NodeSettingLabel>
 							<Input
 								{...form.register('name', { required: true })}
 								defaultValue={node.data?.name}
@@ -133,7 +142,7 @@ export const Component = () => {
 						</div> */}
 
 						<div>
-							<NodeSettingLabel>Data Folder</NodeSettingLabel>
+							<NodeSettingLabel>{t('data_folder')}</NodeSettingLabel>
 							<div className="mt-2 flex w-full flex-row gap-2">
 								<Input className="grow" value={node.data?.data_path} disabled />
 								<Button
@@ -175,22 +184,18 @@ export const Component = () => {
 				</div>
 			</Card>
 
-			<Setting
-				mini
-				title="Debug mode"
-				description="Enable extra debugging features within the app."
-			>
+			<Setting mini title={t('debug_mode')} description={t('debug_mode_description')}>
 				<Switch
 					size="md"
 					checked={debugState.enabled}
-					onClick={() => (getDebugState().enabled = !debugState.enabled)}
+					onClick={() => (debugState.enabled = !debugState.enabled)}
 				/>
 			</Setting>
 			<Setting
 				mini
 				registerName="background_processing_percentage"
-				title="Thumbnailer CPU usage"
-				description="Limit how much CPU the thumbnailer can use for background processing."
+				title={t('thumbnailer_cpu_usage')}
+				description={t('thumbnailer_cpu_usage_description')}
 			>
 				<div className="flex h-[30px] w-80 items-center gap-2">
 					<Slider
@@ -218,8 +223,31 @@ export const Component = () => {
 					/>
 				</div>
 			</Setting>
+			<Setting
+				mini
+				title={t('image_labeler_ai_model')}
+				description={t('image_labeler_ai_model_description')}
+				registerName="image_labeler_version"
+			>
+				<div className="flex h-[30px] gap-2">
+					<Controller
+						name="image_labeler_version"
+						disabled={node.data?.image_labeler_version == null}
+						control={form.control}
+						render={({ field }) => (
+							<Select {...field} containerClassName="h-[30px] whitespace-nowrap">
+								{image_labeler_versions.data?.map((model, key) => (
+									<SelectOption key={key} value={model}>
+										{model}
+									</SelectOption>
+								))}
+							</Select>
+						)}
+					/>
+				</div>
+			</Setting>
 			<div className="flex flex-col gap-4">
-				<h1 className="mb-3 text-lg font-bold text-ink">Networking</h1>
+				<h1 className="mb-3 text-lg font-bold text-ink">{t('networking')}</h1>
 
 				{/* TODO: Add some UI for this stuff */}
 				{/* {node.data?.p2p.ipv4.status === 'Listening' ||
@@ -233,7 +261,8 @@ export const Component = () => {
 
 				<Setting
 					mini
-					title="Enable Networking"
+					title={t('enable_networking')}
+					// TODO: i18n
 					description={
 						<>
 							<p className="text-sm text-gray-400">
@@ -256,8 +285,8 @@ export const Component = () => {
 				</Setting>
 				<Setting
 					mini
-					title="Networking Port"
-					description="The port for Spacedrive's Peer-to-peer networking to communicate on. You should leave this disabled unless you have a restictive firewall. Do not expose to the internet!"
+					title={t('networking_port')}
+					description={t('networking_port_description')}
 				>
 					<div className="flex h-[30px] gap-2">
 						<Controller
@@ -274,8 +303,8 @@ export const Component = () => {
 										form.setValue('p2p_port', 0);
 									}}
 								>
-									<SelectOption value="Default">Default</SelectOption>
-									<SelectOption value="Custom">Custom</SelectOption>
+									<SelectOption value="Default">{t('default')}</SelectOption>
+									<SelectOption value="Custom">{t('custom')}</SelectOption>
 								</Select>
 							)}
 						/>

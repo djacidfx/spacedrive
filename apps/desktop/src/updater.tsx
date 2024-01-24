@@ -21,7 +21,6 @@ export function createUpdater() {
 
 	listen<UpdateStore>('updater', (e) => {
 		Object.assign(updateStore, e.payload);
-		console.log(updateStore);
 	});
 
 	const onInstallCallbacks = new Set<() => void>();
@@ -97,15 +96,23 @@ export function createUpdater() {
 
 		if (lastVersion !== version) {
 			localStorage.setItem(SD_VERSION_LOCALSTORAGE, version);
+			let tagline = null;
 
-			const { frontmatter } = await fetch(
-				`${import.meta.env.VITE_LANDING_ORIGIN}/api/releases/${version}`
-			).then((r) => r.json());
+			try {
+				const request = await fetch(
+					`${import.meta.env.VITE_LANDING_ORIGIN}/api/releases/${version}`
+				);
+				const { frontmatter } = await request.json();
+				tagline = frontmatter?.tagline;
+			} catch (error) {
+				console.warn('Failed to fetch release info');
+				console.error(error);
+			}
 
 			toast.success(
 				{
 					title: `Updated successfully, you're on version ${version}`,
-					body: frontmatter?.tagline
+					body: tagline
 				},
 				{
 					duration: 10 * 1000,

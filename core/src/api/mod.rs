@@ -1,13 +1,16 @@
-use std::sync::{atomic::Ordering, Arc};
-
 use crate::{
 	invalidate_query,
 	job::JobProgressEvent,
-	node::config::{NodeConfig, NodePreferences},
+	node::{
+		config::{NodeConfig, NodePreferences},
+		get_hardware_model_name, HardwareModel,
+	},
 	Node,
 };
+
 use sd_cache::patch_typedef;
 use sd_p2p::P2PStatus;
+use std::sync::{atomic::Ordering, Arc};
 
 use itertools::Itertools;
 use rspc::{alpha::Rspc, Config, ErrorCode};
@@ -23,8 +26,10 @@ mod ephemeral_files;
 mod files;
 mod jobs;
 mod keys;
+mod labels;
 mod libraries;
 pub mod locations;
+mod models;
 mod nodes;
 pub mod notifications;
 mod p2p;
@@ -92,6 +97,7 @@ pub struct SanitisedNodeConfig {
 	pub p2p_port: Option<u16>,
 	pub features: Vec<BackendFeature>,
 	pub preferences: NodePreferences,
+	pub image_labeler_version: Option<String>,
 }
 
 impl From<NodeConfig> for SanitisedNodeConfig {
@@ -103,6 +109,7 @@ impl From<NodeConfig> for SanitisedNodeConfig {
 			p2p_port: value.p2p.port,
 			features: value.features,
 			preferences: value.preferences,
+			image_labeler_version: value.image_labeler_version,
 		}
 	}
 }
@@ -113,6 +120,7 @@ struct NodeState {
 	config: SanitisedNodeConfig,
 	data_path: String,
 	p2p: P2PStatus,
+	device_model: Option<String>,
 }
 
 pub(crate) fn mount() -> Arc<Router> {
@@ -134,6 +142,10 @@ pub(crate) fn mount() -> Arc<Router> {
 		})
 		.procedure("nodeState", {
 			R.query(|node, _: ()| async move {
+				let device_model = get_hardware_model_name()
+					.unwrap_or(HardwareModel::Other)
+					.to_string();
+
 				Ok(NodeState {
 					config: node.config.get().await.into(),
 					// We are taking the assumption here that this value is only used on the frontend for display purposes
@@ -144,6 +156,7 @@ pub(crate) fn mount() -> Arc<Router> {
 						.expect("Found non-UTF-8 path")
 						.to_string(),
 					p2p: node.p2p.manager.status(),
+					device_model: Some(device_model),
 				})
 			})
 		})
@@ -194,6 +207,7 @@ pub(crate) fn mount() -> Arc<Router> {
 		.merge("library.", libraries::mount())
 		.merge("volumes.", volumes::mount())
 		.merge("tags.", tags::mount())
+		.merge("labels.", labels::mount())
 		// .merge("categories.", categories::mount())
 		// .merge("keys.", keys::mount())
 		.merge("locations.", locations::mount())
@@ -201,6 +215,7 @@ pub(crate) fn mount() -> Arc<Router> {
 		.merge("files.", files::mount())
 		.merge("jobs.", jobs::mount())
 		.merge("p2p.", p2p::mount())
+		.merge("models.", models::mount())
 		.merge("nodes.", nodes::mount())
 		.merge("sync.", sync::mount())
 		.merge("preferences.", preferences::mount())
