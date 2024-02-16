@@ -22,7 +22,7 @@
 		"archive-wasm": "^1.5.3",
 		"mustache": "^4.2.0",
 		"semver": "^7.5.4",
-		"undici": "^5.26.4"
+		"undici": "^5.28.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.23.2",
