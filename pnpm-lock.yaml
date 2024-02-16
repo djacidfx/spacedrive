@@ -419,8 +419,8 @@ importers:
         specifier: 0.72.6
         version: 0.72.6(@babel/core@7.23.2)(@babel/preset-env@7.23.5)(react@18.2.0)
       react-native-document-picker:
-        specifier: ^9.0.1
-        version: 9.0.1(react-native@0.72.6)(react@18.2.0)
+        specifier: ^9.1.1
+        version: 9.1.1(react-native@0.72.6)(react@18.2.0)
       react-native-fs:
         specifier: ^2.20.0
         version: 2.20.0(react-native@0.72.6)
@@ -4530,10 +4530,6 @@ packages:
     peerDependencies:
       '@effect-ts/otel-node': '*'
     peerDependenciesMeta:
-      '@effect-ts/core':
-        optional: true
-      '@effect-ts/otel':
-        optional: true
       '@effect-ts/otel-node':
         optional: true
     dependencies:
@@ -19942,8 +19938,8 @@ packages:
     resolution: {integrity: sha512-alTKsjEL0dKH/ru1Iyn7vliS2QRcBp9zZPGoWxUOvRGWPUYgjo+V01is7p04It6KhgrzhJGnIj9GgX8W4bZoCQ==}
     dev: false
 
-  /react-native-document-picker@9.0.1(react-native@0.72.6)(react@18.2.0):
-    resolution: {integrity: sha512-l2c2xChwsdjzZIV9QJc85buC3vXkM5ZuY4943yMDj3TiszJp1spmHNaRMZKYIh3yVwdD2jENm0DBU5AWa+jhLg==}
+  /react-native-document-picker@9.1.1(react-native@0.72.6)(react@18.2.0):
+    resolution: {integrity: sha512-BW+7DbsILuFThlBm7NUFVUmKKf6Awkcf9R0q8wiCU2DlGGtAKQTt2iHpO5+Dn/7WMPB+rqNv3X1HsmJQ0t5R3g==}
     peerDependencies:
       react: '*'
       react-native: '*'
