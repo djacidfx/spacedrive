@@ -1071,8 +1071,8 @@ importers:
         specifier: ^7.5.4
         version: 7.5.4
       undici:
-        specifier: ^5.26.4
-        version: 5.27.2
+        specifier: ^5.28.4
+        version: 5.28.4
     devDependencies:
       '@babel/core':
         specifier: ^7.23.2
@@ -1157,7 +1157,7 @@ packages:
     resolution: {integrity: sha512-q+epW0trjVUUHboliPb4UF9g2msf+w61b32tAkFEwL/IwP0DQWgbCMM0Hbe3e3WXSKz5VcUXbzJQgy8Hkra/Lg==}
     dependencies:
       tunnel: 0.0.6
-      undici: 5.27.2
+      undici: 5.28.4
     dev: false
 
   /@actions/io@1.1.3:
@@ -4530,10 +4530,6 @@ packages:
     peerDependencies:
       '@effect-ts/otel-node': '*'
     peerDependenciesMeta:
-      '@effect-ts/core':
-        optional: true
-      '@effect-ts/otel':
-        optional: true
       '@effect-ts/otel-node':
         optional: true
     dependencies:
@@ -22750,8 +22746,8 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /undici@5.27.2:
-    resolution: {integrity: sha512-iS857PdOEy/y3wlM3yRp+6SNQQ6xU0mmZcwRSriqk+et/cwWAtwmIGf6WkoDN2EK/AMdCO/dfXzIwi+rFMrjjQ==}
+  /undici@5.28.4:
+    resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0
